@@ -1,17 +1,14 @@
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
-
-app.use(cors({
-  origin: '*',
-  credentials: true
-}));
-
-const Sentry = require('@sentry/node');
-const { nodeProfilingIntegration } = require('@sentry/profiling-node');
 const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+
+const Sentry = require('@sentry/node');
+const { nodeProfilingIntegration } = require('@sentry/profiling-node');
+
 const logger = require('./src/utils/logger');
 const { scheduleReports } = require('./src/analytics/weeklyReport');
 
@@ -28,42 +25,38 @@ const analyticsRoutes = require('./src/routes/analytics');
 const tenantMiddleware = require('./src/middleware/tenant');
 const { requireRole } = require('./src/middleware/rbac');
 
-const app = express();
+const app = express(); // ✅ ONLY ONCE
 
+// 🔧 Basic setup
 app.set('trust proxy', 1);
 
-app.set('trust proxy', 1);
-
-Sentry.init({
-  dsn: process.env.SENTRY_DSN || "https://mock@o4511072180371456.ingest.us.sentry.io/4511072193740800",
-  integrations: [
-    nodeProfilingIntegration(),
-  ],
-  tracesSampleRate: 1.0,
-  profilesSampleRate: 1.0,
-});
-Sentry.setupExpressErrorHandler(app);
-// Hardening
+// 🔐 Security & middleware
+app.use(cors({ origin: '*' }));
+app.use(express.json());
 app.use(helmet());
 app.use(compression());
-app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
-app.use(express.json());
 
-// Rate Limiting
+// 🚦 Rate limiting
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
 const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500 });
+
 app.use('/auth', authLimiter);
 app.use('/leads', apiLimiter);
 app.use('/approvals', apiLimiter);
 
-// Public routing
+// ❤️ Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+// 🌐 Routes
 app.get('/', (req, res) => res.send('Backend is live 🚀'));
-app.get('/health', (req, res) => res.json({ status: "ok" }));
+
 app.use('/auth', authRoutes);
 app.use('/webhook', webhooksRoutes);
 
 app.use(tenantMiddleware);
-// RBAC Applied natively or at controller levels, assuming shell protection if routes aren't built
+
 app.use('/billing', requireRole(['admin']), billingRoutes);
 app.use('/analytics', analyticsRoutes);
 app.use('/leads', leadsRoutes);
@@ -73,13 +66,17 @@ app.use('/llm', llmRoutes);
 app.use('/whatsapp', whatsappRoutes);
 app.use('/social', socialRoutes);
 
-// Optional: mock shell routes if they don't natively exist yet to satisfy prompt spec
-app.delete('/users/:id', requireRole(['admin']), (req, res) => res.json({ msg: "User deleted" }));
+// 🔧 Mock route
+app.delete('/users/:id', requireRole(['admin']), (req, res) => {
+  res.json({ msg: "User deleted" });
+});
 
-// Init cron
+// ⏰ Cron
 scheduleReports();
 
+// 🚀 Start server (ONLY ONCE)
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log(`LeadOS backend running on port ${PORT}`);
+  console.log(`Backend running on port ${PORT}`);
 });
