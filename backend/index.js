@@ -2,6 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
+app.use(cors({
+  origin: '*',
+  credentials: true
+}));
+
 const Sentry = require('@sentry/node');
 const { nodeProfilingIntegration } = require('@sentry/profiling-node');
 const helmet = require('helmet');
@@ -34,8 +39,8 @@ Sentry.init({
   integrations: [
     nodeProfilingIntegration(),
   ],
-  tracesSampleRate: 1.0, 
-  profilesSampleRate: 1.0, 
+  tracesSampleRate: 1.0,
+  profilesSampleRate: 1.0,
 });
 Sentry.setupExpressErrorHandler(app);
 // Hardening
@@ -60,9 +65,9 @@ app.use('/webhook', webhooksRoutes);
 app.use(tenantMiddleware);
 // RBAC Applied natively or at controller levels, assuming shell protection if routes aren't built
 app.use('/billing', requireRole(['admin']), billingRoutes);
-app.use('/analytics', analyticsRoutes); 
+app.use('/analytics', analyticsRoutes);
 app.use('/leads', leadsRoutes);
-app.use('/', notesRoutes); 
+app.use('/', notesRoutes);
 app.use('/approvals', approvalsRoutes);
 app.use('/llm', llmRoutes);
 app.use('/whatsapp', whatsappRoutes);
@@ -76,5 +81,5 @@ scheduleReports();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`LeadOS backend running on port ${PORT}`);
+  console.log(`LeadOS backend running on port ${PORT}`);
 });
