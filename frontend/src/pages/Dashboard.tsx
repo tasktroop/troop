@@ -7,8 +7,6 @@ const Dashboard: React.FC = () => {
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddLeadModal, setShowAddLeadModal] = useState(false);
-
-  // Controlled form state — fixes the silent data-loss bug
   const [newLead, setNewLead] = useState({ name: '', email: '' });
 
   useEffect(() => {
@@ -38,7 +36,6 @@ const Dashboard: React.FC = () => {
 
   const handleAddLead = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: POST to /leads
     toast.success(`Lead "${newLead.name}" added`);
     setNewLead({ name: '', email: '' });
     setShowAddLeadModal(false);
@@ -48,7 +45,6 @@ const Dashboard: React.FC = () => {
     return <div className="text-center mt-10 text-white">Loading...</div>;
   }
 
-  // ✅ Single return — everything lives inside one JSX tree
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
 
