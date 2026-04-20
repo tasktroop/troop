@@ -28,10 +28,10 @@ const Dashboard: React.FC = () => {
   }, []);
 
   const stats = [
-    { name: 'Total Leads',     value: leads.length, icon: Users },
-    { name: 'Open Approvals',  value: '12',         icon: CheckSquare },
-    { name: 'Posts This Week', value: '8',           icon: MessageSquare },
-    { name: 'MRR',             value: '$12,450',     icon: DollarSign },
+    { name: 'Total Leads', value: leads.length, icon: Users },
+    { name: 'Open Approvals', value: '12', icon: CheckSquare },
+    { name: 'Posts This Week', value: '8', icon: MessageSquare },
+    { name: 'MRR', value: '$12,450', icon: DollarSign },
   ];
 
   const handleAddLead = (e: React.FormEvent) => {
